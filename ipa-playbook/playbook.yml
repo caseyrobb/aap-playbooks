@@ -1,6 +1,6 @@
 ---
 - name: Playbook to configure IPA server
-  hosts: idm
+  hosts: idm.redcomet.ca
   become: true
   vars_files:
   - vault.yml
