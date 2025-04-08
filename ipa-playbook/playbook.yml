@@ -6,5 +6,5 @@
   - vault.yml
 
   roles:
-  - role: ipaserver
+  - role: redhat.rhel_idm.ipaserver
     state: present
