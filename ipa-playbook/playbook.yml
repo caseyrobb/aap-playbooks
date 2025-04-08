@@ -1,0 +1,10 @@
+---
+- name: Playbook to configure IPA server
+  hosts: idm
+  become: true
+  vars_files:
+  - vault.yml
+
+  roles:
+  - role: ipaserver
+    state: present
