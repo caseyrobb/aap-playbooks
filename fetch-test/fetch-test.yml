@@ -1,7 +1,6 @@
 ---
 - name: Fetch /etc/profile from AAP
   hosts: k0s.redcomet.ca
-  become: true
   vars_files:
     - ../vault.yml
   tasks:
