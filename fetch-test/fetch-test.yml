@@ -3,7 +3,7 @@
   hosts: k0s.redcomet.ca
   become: true
   vars_files:
-    - vault.yml
+    - ../vault.yml
   tasks:
     - name: Fetch /etc/profile from remote host
       ansible.builtin.fetch:
