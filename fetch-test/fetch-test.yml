@@ -1,5 +1,7 @@
 ---
 - name: Fetch /etc/profile from AAP
+  hosts: k0s.redcomet.ca
+  become: true
   tasks:
     - name: Fetch /etc/profile from remote host
       ansible.builtin.fetch:
