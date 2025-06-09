@@ -11,10 +11,6 @@
         flat: yes
       register: fetch_result
 
-    - name: print results
-      debug:
-        msg: "{{ fetch_result }}"
-
     - name: Send email with /etc/profile as attachment
       community.general.mail:
         host: smtp.gmail.com
