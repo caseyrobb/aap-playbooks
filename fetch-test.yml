@@ -1,0 +1,14 @@
+---
+- name: Fetch /etc/profile from AAP
+  tasks:
+    - name: Fetch /etc/profile from remote host
+      ansible.builtin.fetch:
+        src: /etc/profile
+        dest: /tmp/fetched_files/
+        flat: yes
+      register: fetch_result
+
+    - name: print results
+      debug:
+        msg: "{{ fetch_result }}"
+
