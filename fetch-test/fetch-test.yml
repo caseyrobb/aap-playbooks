@@ -14,3 +14,6 @@
       debug:
         msg: "{{ fetch_result }}"
 
+    - name: Pause 5 min
+      ansible.builtin.pause:
+        minutes: 5
