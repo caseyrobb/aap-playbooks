@@ -2,6 +2,8 @@
 - name: Fetch /etc/profile from AAP
   hosts: k0s.redcomet.ca
   become: true
+  vars_files:
+    - vault.yml
   tasks:
     - name: Fetch /etc/profile from remote host
       ansible.builtin.fetch:
@@ -14,6 +16,16 @@
       debug:
         msg: "{{ fetch_result }}"
 
-    - name: Pause 5 min
-      ansible.builtin.pause:
-        minutes: 5
+    - name: Send email with /etc/profile as attachment
+      community.general.mail:
+        host: smtp.example.com
+        port: 587
+        username: "{{ smtp_user }}"
+        password: "{{ smtp_pass }}"
+        from: "{{ smtp_from }}"
+        to: "{{ smtp_to }}"
+        subject: Fetched /etc/profile File
+        body: Attached is the /etc/profile file from the remote host.
+        attach: "{{ fetch_result.dest }}"
+        secure: starttls       
+      delegate_to: localhost  
