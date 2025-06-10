@@ -1,7 +1,7 @@
 ---
 - name: Custom facts test
   hosts: k0s.redcomet.ca
-  gather_facts: false
+  gather_facts: true
   tasks:
     - name: Collect OS facts
       ansible.builtin.setup:
@@ -27,7 +27,7 @@
       notify: Refresh facts
 
     - name: Display filtered facts
-      ansible.buildin.debug:
+      ansible.builtin.debug:
         msg: "{{ filtered_facts }}"
 
     - name: Display custom facts from file
