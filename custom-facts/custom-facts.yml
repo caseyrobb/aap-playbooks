@@ -1,5 +1,6 @@
 ---
 - name: Custom facts test
+  hosts: k0s.redcomet.ca
   gather_facts: false
   tasks:
     - name: Collect OS facts
