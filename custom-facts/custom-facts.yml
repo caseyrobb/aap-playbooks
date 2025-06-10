@@ -23,6 +23,7 @@
       ansible.builtin.setup:
         filter:
           - ansible_local*
+          - ansible_memory*
         gather_subset: "!all,local"
       register: filtered_facts
 
@@ -33,6 +34,10 @@
     - name: Display custom facts from file
       ansible.builtin.debug:
         msg: "Custom fact from file - Environment: {{ ansible_facts['ansible_local']['custom']['general']['environment'] }}, Application: {{ ansible_facts['ansible_local']['custom']['general']['application'] }}"
+    - name: Display gathered facts from filter
+      ansible.builtin.debug:
+        msg: "Free Memory: {{ ansible_facts['ansible_memory_mb']['real']['free'] }}, Total Memory: {{ ansible_facts['ansible_memory_mb']['real']['total'] }}"
+
     - name: Display custom facts from AAP template
       ansible.builtin.debug:
         msg: "Custom fact from AAP template - site_name: {{ site_name | default('undefined') }}, owner: {{ owner | default('undefined') }}"
