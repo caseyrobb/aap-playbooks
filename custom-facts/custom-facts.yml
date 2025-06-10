@@ -3,13 +3,6 @@
   hosts: k0s.redcomet.ca
   gather_facts: false
   tasks:
-    - name: Collect OS facts
-      ansible.builtin.setup:
-        filter:
-          - ansible_memory*
-        gather_subset: "!all,local"
-      register: filtered_facts
-
     - name: Ensure custom facts directory exists 
       ansible.builtin.file:
         path: /etc/ansible/facts.d
@@ -25,6 +18,13 @@
         dest: /etc/ansible/facts.d/custom.fact
         mode: '0644'
       notify: Refresh facts
+
+    - name: Collect OS facts
+      ansible.builtin.setup:
+        filter:
+          - general*
+        gather_subset: "!all,ansible_local"
+      register: filtered_facts
 
     - name: Display filtered facts
       ansible.builtin.debug:
