@@ -23,8 +23,10 @@
       ansible.builtin.setup:
         filter:
           - 'ansible_local'
-          - 'ansible_memory*'
-        gather_subset: '!all,local'
+          - 'ansible_memory_mb'
+        gather_subset:
+          - '!all'
+          - 'local'
       register: filtered_facts
 
     - name: Display filtered facts
