@@ -22,7 +22,7 @@
     - name: Collect OS facts
       ansible.builtin.setup:
         filter:
-          - ansible_memory*
+          - ansible_local*
         gather_subset: "!all,local"
       register: filtered_facts
 
