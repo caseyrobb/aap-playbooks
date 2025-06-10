@@ -1,0 +1,25 @@
+---
+- name: Custom facts test
+  gather_facts: false
+  tasks:
+    - name: Collect OS facts
+      ansible.builtin.setup:
+        filter:
+          - ansible_memory*
+        gather_subset: "!all,local"
+      register: filtered_facts
+
+#    - name: Collect custom facts
+#      ansible.builtin.setup:
+#        fact_path:
+#        gather_subset: "!all,local"
+#      register: custom_facts
+
+    - name: Display filtered facts
+      ansible.buildin.debug:
+        msg: "{{ filtered_facts }}"
+
+    - name: Display custom facts
+      ansible.buildin.debug:
+        msg: "{{ ansible_facts['ansible_local']['custom']['general']['environment'] }}"
+        #msg: "{{ custom_facts }}"
