@@ -10,17 +10,35 @@
         gather_subset: "!all,local"
       register: filtered_facts
 
-#    - name: Collect custom facts
-#      ansible.builtin.setup:
-#        fact_path:
-#        gather_subset: "!all,local"
-#      register: custom_facts
+    - name: Ensure custom facts directory exists 
+      ansible.builtin.file:
+        path: /etc/ansible/facts.d
+        state: directory
+        mode: '0755'
+
+    - name: Create custom facts file 
+      ansible.builtin.copy:
+        content: |
+          [general]
+          environment=production
+          application=myapp
+        dest: /etc/ansible/facts.d/custom.fact
+        mode: '0644'
+      notify: Refresh facts
 
     - name: Display filtered facts
       ansible.buildin.debug:
         msg: "{{ filtered_facts }}"
 
-    - name: Display custom facts
-      ansible.buildin.debug:
-        msg: "{{ ansible_facts['ansible_local']['custom']['general']['environment'] }}"
-        #msg: "{{ custom_facts }}"
+    - name: Display custom facts from file
+      ansible.builtin.debug:
+        msg: "Custom fact from file - Environment: {{ ansible_facts['ansible_local']['custom']['general']['environment'] }}, Application: {{ ansible_facts['ansible_local']['custom']['general']['application'] }}"
+    - name: Display custom facts from AAP template
+      ansible.builtin.debug:
+        msg: "Custom fact from AAP template - site_name: {{ site_name | default('undefined') }}, owner: {{ owner | default('undefined') }}"
+      when: site_name is defined or owner is defined
+
+  handlers:
+    - name: Refresh facts
+      ansible.builtin.setup:
+        filter: ansible_local
