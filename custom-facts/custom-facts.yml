@@ -30,9 +30,9 @@
       ansible.builtin.debug:
         msg: "{{ filtered_facts }}"
 
-    #- name: Display custom facts from file
-    #  ansible.builtin.debug:
-    #    msg: "Custom fact from file - Environment: {{ ansible_facts['ansible_local']['custom']['general']['environment'] }}, Application: {{ ansible_facts['ansible_local']['custom']['general']['application'] }}"
+    - name: Display custom facts from file
+      ansible.builtin.debug:
+        msg: "Custom fact from file - Environment: {{ ansible_facts['ansible_local']['custom']['general']['environment'] }}, Application: {{ ansible_facts['ansible_local']['custom']['general']['application'] }}"
     - name: Display custom facts from AAP template
       ansible.builtin.debug:
         msg: "Custom fact from AAP template - site_name: {{ site_name | default('undefined') }}, owner: {{ owner | default('undefined') }}"
