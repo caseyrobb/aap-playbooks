@@ -12,7 +12,7 @@
 
   tasks:
     - name: Read custom-facts.csv file
-      ansible.builtin.read_csv:
+      community.general.read_csv:
         path: "{{ csv_file }}"
         delimiter: ","
       register: csv_data
