@@ -1,0 +1,5 @@
+Hostname,Partner,ServerRole,ServerApplications,InternetConnected
+server1.example.com,ABC,App,App1,Yes
+server2.example.com,DEF,DB,App2,No
+server3.example.com,GHI,App,App2,No
+server4.example.com,JKL,DB,App1,Yes

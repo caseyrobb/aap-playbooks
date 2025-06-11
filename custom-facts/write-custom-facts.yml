@@ -1,0 +1,67 @@
+---
+- name: Parse custom-facts.csv and set host vars in AAP
+  hosts: localhost
+  gather_facts: no
+  vars:
+    aap_controller_url: "https://controller.example.com/api/v2"
+    aap_username: "{{ lookup('env', 'AAP_USERNAME') }}"
+    aap_password: "{{ lookup('env', 'AAP_PASSWORD') }}"
+    csv_file: "custom-facts.csv"
+    validate_certs: false
+    host_ids: []
+
+  tasks:
+    - name: Read custom-facts.csv file
+      ansible.builtin.read_csv:
+        path: "{{ csv_file }}"
+        delimiter: ","
+      register: csv_data
+
+    - name: Get host ID from AAP
+      ansible.builtin.uri:
+        url: "{{ aap_controller_url }}/hosts/?name={{ item.Hostname }}"
+        method: GET
+        user: "{{ aap_username }}"
+        password: "{{ aap_password }}"
+        headers:
+          Content-Type: application/json
+        force_basic_auth: yes
+        validate_certs: "{{ validate_certs }}"
+        return_content: yes
+      register: host_lookup
+      loop: "{{ csv_data.list }}"
+      when: csv_data.list is defined
+
+    - name: Extract host ID and append to list
+      ansible.builtin.set_fact:
+        host_ids: "{{ host_ids + [host_lookup.results[index].json.results[0].id | default('')] }}"
+      when:
+        - csv_data.list is defined
+        - host_lookup.results[index].json.results | length > 0
+      loop: "{{ csv_data.list }}"
+      loop_control:
+        index_var: index
+
+    - name: Set host variables in AAP
+      ansible.builtin.uri:
+        url: "{{ aap_controller_url }}/hosts/{{ host_ids[index] }}/variable_data/"
+        method: PUT
+        user: "{{ aap_username }}"
+        password: "{{ aap_password }}"
+        headers:
+          Content-Type: application/json
+        body_format: json
+        body:
+          Partner: "{{ item.Partner }}"
+          ServerRole: "{{ item.ServerRole }}"
+          ServerApplications: "{{ item.ServerApplications }}"
+          InternetConnected: "{{ item.InternetConnected }}"
+        force_basic_auth: yes
+        validate_certs: "{{ validate_certs }}"
+        status_code: 200, 201
+      loop: "{{ csv_data.list }}"
+      loop_control:
+        index_var: index
+      when:
+        - csv_data.list is defined
+        - host_ids[index] != ''
