@@ -1,7 +1,8 @@
 ---
 - name: Workflow var test
+  hosts: localhost
+  gather_facts: yes
   tasks:
-
     - name: Display workflow var
       ansible.builtin.debug:
         msg: "{{ testvar }}"
