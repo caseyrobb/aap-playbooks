@@ -1,16 +1,16 @@
 ---
 - name: Workflow var test
   hosts: localhost
-  gather_facts: yes
+  connection: local
   tasks:
-    - name: Display workflow var
+    - name: Display initial value of testvar
       ansible.builtin.debug:
-        msg: "{{ testvar }}"
+        msg: "Initial testvar: {{ testvar }}"
 
-    - name: Set workflow vars
+    - name: Set testvar to goodbye
       ansible.builtin.set_fact:
         testvar: "goodbye"
 
-    - name: Display workflow var again
+    - name: Display updated value of testvar
       ansible.builtin.debug:
-        msg: "{{ testvar }}"
+        msg: "Updated testvar: {{ testvar }}"
