@@ -25,6 +25,7 @@
       environment:
         ANSIBLE_TEMPORARY_DIRECTORY: "/tmp/ansible_tmp"
       changed_when: false
+      become: false
 
     - name: Email /etc/profile as attachment
       community.general.mail:
