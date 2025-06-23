@@ -1,0 +1,15 @@
+---
+- name: Workflow var test
+  tasks:
+
+    - name: Display workflow var
+      ansible.builtin.debug:
+        msg: "{{ testvar }}"
+
+    - name: Set workflow vars
+      ansible.builtin.set_fact:
+        testvar: "goodbye"
+
+    - name: Display workflow var again
+      ansible.builtin.debug:
+        msg: "{{ testvar }}"
