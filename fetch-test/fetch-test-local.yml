@@ -1,0 +1,31 @@
+---
+- name: Fetch /etc/profile and email as attachment
+  hosts: all
+  become: true  
+  vars_files:
+    - vault.yml
+  tasks:
+    - name: Fetch /etc/profile from target host
+      ansible.builtin.fetch:
+        src: /etc/profile
+        dest: "{{ file_path }}"
+        flat: true
+      changed_when: false
+
+    - name: Email /etc/profile as attachment
+      community.general.mail:
+        host: "{{ smtp_server }}"
+        port: "{{ smtp_port }}"
+        from: "{{ sender_email }}"
+        to: "{{ recipient_email }}"
+        subject: "/etc/profile from {{ ansible_hostname }}"
+        body: "Please find the /etc/profile file attached."
+        attach:
+          - "{{ file_path }}"
+      delegate_to: localhost  
+
+    - name: Clean up temporary file
+      ansible.builtin.file:
+        path: "{{ file_path }}"
+        state: absent
+      delegate_to: localhost
