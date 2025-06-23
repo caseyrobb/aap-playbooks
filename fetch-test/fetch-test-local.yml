@@ -6,36 +6,37 @@
   vars_files:
     - vault.yml
   tasks:
-#    - name: Ensure temporary directory is writable
-#      ansible.builtin.file:
-#        path: "/tmp/ansible_tmp"
-#        state: directory
-#        mode: '0777'
-#        owner: "{{ ansible_user_id }}"
-#        group: "{{ ansible_user_id }}"
-#      become: false
-#
-#    - name: Fetch /etc/profile from target host
-#      ansible.builtin.fetch:
-#        src: /etc/profile
-#        dest: "{{ file_path }}"
-#        flat: true
-#        validate_checksum: false
-#      environment:
-#        ANSIBLE_TEMPORARY_DIRECTORY: "/tmp/ansible_tmp"
-#      changed_when: false
-    - name: Capture dmesg output to a file
-      ansible.builtin.command: dmesg
-      register: dmesg_output
+    - name: Ensure temporary directory is writable
+      ansible.builtin.file:
+        path: "/tmp/ansible_tmp"
+        state: directory
+        mode: '0777'
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_id }}"
+      become: false
+
+    - name: Fetch /etc/profile from target host
+      ansible.builtin.fetch:
+        src: /etc/profile
+        dest: "{{ file_path }}"
+        flat: true
+        validate_checksum: false
+      environment:
+        ANSIBLE_TEMPORARY_DIRECTORY: "/tmp/ansible_tmp"
       changed_when: false
 
-    - name: Write dmesg output to a text file
-      ansible.builtin.copy:
-        content: "{{ dmesg_output.stdout }}"
-        dest: "{{ file_path }}"
-        mode: '0644' 
+#   - name: Capture dmesg output to a file
+#     ansible.builtin.command: dmesg
+#     register: dmesg_output
+#     changed_when: false
 
-    - name: Email dmesg output as attachment
+#   - name: Write dmesg output to a text file
+#     ansible.builtin.copy:
+#       content: "{{ dmesg_output.stdout }}"
+#       dest: "{{ file_path }}"
+#       mode: '0644' 
+
+    - name: Email /etc/profile as attachment
       community.general.mail:
         host: "{{ smtp_server }}"
         port: "{{ smtp_port }}"
@@ -44,10 +45,8 @@
         subject: "/etc/profile from {{ ansible_hostname }}"
         body: "Please find the /etc/profile file attached."
         attach:
-          - /etc/profile
-          #- "{{ file_path }}"
+          - "{{ file_path }}"
       delegate_to: localhost  
-      become: false
 
     - name: Clean up temporary file
       ansible.builtin.file:
