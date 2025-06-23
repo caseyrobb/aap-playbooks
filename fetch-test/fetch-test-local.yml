@@ -2,14 +2,27 @@
 - name: Fetch /etc/profile and email as attachment
   hosts: all
   become: true  
+  become_method: sudo  
   vars_files:
     - vault.yml
   tasks:
+    - name: Ensure temporary directory is writable
+      ansible.builtin.file:
+        path: "/tmp/ansible_tmp"
+        state: directory
+        mode: '0777'
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_id }}"
+      become: false
+
     - name: Fetch /etc/profile from target host
       ansible.builtin.fetch:
         src: /etc/profile
         dest: "{{ file_path }}"
         flat: true
+        validate_checksum: false
+      environment:
+        ANSIBLE_TEMPORARY_DIRECTORY: "/tmp/ansible_tmp"
       changed_when: false
 
     - name: Email /etc/profile as attachment
@@ -28,4 +41,4 @@
       ansible.builtin.file:
         path: "{{ file_path }}"
         state: absent
-      delegate_to: localhost
+      become: false
