@@ -35,7 +35,7 @@
         dest: "{{ file_path }}"
         mode: '0644' 
 
-    - name: Email /etc/profile as attachment
+    - name: Email dmesg output as attachment
       community.general.mail:
         host: "{{ smtp_server }}"
         port: "{{ smtp_port }}"
@@ -44,11 +44,12 @@
         subject: "/etc/profile from {{ ansible_hostname }}"
         body: "Please find the /etc/profile file attached."
         attach:
-          - "{{ file_path }}"
+          - /etc/profile
+          #- "{{ file_path }}"
       delegate_to: localhost  
 
     - name: Clean up temporary file
       ansible.builtin.file:
         path: "{{ file_path }}"
         state: absent
-      become: false
+      delegate_to: localhost
