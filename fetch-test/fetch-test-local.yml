@@ -17,7 +17,8 @@
 
     - name: Fetch /etc/profile from target host
       ansible.builtin.fetch:
-        src: /etc/profile
+        src: /home/crobb/nfs-sc.yaml
+        #src: /etc/profile
         dest: "{{ file_path }}"
         flat: true
         validate_checksum: false
