@@ -18,14 +18,12 @@
     - name: Fetch /etc/profile from target host
       ansible.builtin.fetch:
         src: /etc/profile
-        #src: /etc/profile
         dest: "{{ file_path }}"
         flat: true
         validate_checksum: false
       environment:
         ANSIBLE_TEMPORARY_DIRECTORY: "/tmp/ansible_tmp"
       changed_when: false
-      become: false
 
     - name: Email /etc/profile as attachment
       community.general.mail:
