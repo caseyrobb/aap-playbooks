@@ -47,6 +47,7 @@
           - /etc/profile
           #- "{{ file_path }}"
       delegate_to: localhost  
+      become: false
 
     - name: Clean up temporary file
       ansible.builtin.file:
