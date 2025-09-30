@@ -2,8 +2,6 @@
 - name: Playbook to enable HIGH and CRITICAL severity policies in ACS
   hosts: localhost
   gather_facts: no
-  vars_files:
-    - vault.yml
 
   tasks:
     - name: Retrieve policies with CRITICAL or HIGH severity
