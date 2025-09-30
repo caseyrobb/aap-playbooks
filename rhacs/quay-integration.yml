@@ -34,6 +34,9 @@
             endpoint: "{{ quay_endpoint }}"
             oauthToken: "{{ quay_oauth_token }}"
             insecure: true
+            registryRobotCredentials:
+              username: "{{ quay_username }}"
+              password: "{{ quay_password }}"
           categories:
             - "REGISTRY"
             - "SCANNER"
