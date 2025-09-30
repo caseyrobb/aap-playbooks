@@ -1,0 +1,32 @@
+---
+- name: Playbook to enable HIGH and CRITICAL severity policies in ACS
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - vault.yml
+
+  tasks:
+    - name: Retrieve policies with CRITICAL or HIGH severity
+      ansible.builtin.uri:
+        url: "{{ ROX_CENTRAL_ENDPOINT }}/v1/policies?query=Severity%3ACRITICAL_SEVERITY%2CHIGH_SEVERITY"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ ROX_API_TOKEN }}"
+        return_content: yes
+        status_code: 200
+        validate_certs: no
+      register: policies_response
+
+    - name: Enable retrieved policies if disabled
+      ansible.builtin.uri:
+        url: "{{ ROX_CENTRAL_ENDPOINT }}/v1/policies/{{ item.id }}"
+        method: PATCH
+        headers:
+          Authorization: "Bearer {{ ROX_API_TOKEN }}"
+          Content-Type: "application/json"
+        body: '{"disabled": false}'
+        body_format: json
+        status_code: 200
+        validate_certs: no
+      when: item.disabled | bool
+      loop: "{{ policies_response.json.policies }}"
