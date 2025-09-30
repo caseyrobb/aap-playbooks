@@ -1,0 +1,42 @@
+---
+- name: Create Red Hat ACS Integration for Quay.io
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - vault.yml
+
+  tasks:
+    - name: "Check for existing Quay integration named '{{ acs_integration_name }}'"
+      ansible.builtin.uri:
+        url: "{{ ROX_CENTRAL_ADDRESS }}/v1/imageintegrations"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ ROX_API_TOKEN }}"
+        validate_certs: no
+        return_content: true
+      register: existing_integrations
+
+    - name: "Set fact for existing integration"
+      ansible.builtin.set_fact:
+        integration_exists: "{{ existing_integrations.json.integrations | selectattr('name', 'equalto', acs_integration_name) | list | length > 0 }}"
+
+    - name: "Create Quay integration if it does not exist"
+      ansible.builtin.uri:
+        url: "{{ ROX_CENTRAL_ADDRESS }}/v1/imageintegrations"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ ROX_API_TOKEN }}"
+        body_format: json
+        body:
+          name: "{{ acs_integration_name }}"
+          type: "quay"
+          quay:
+            endpoint: "{{ quay_endpoint }}"
+            oauthToken: "{{ quay_oauth_token }}"
+            insecure: true
+          categories:
+            - "REGISTRY"
+            - "SCANNER"
+        status_code: 200
+        validate_certs: no
+      when: not integration_exists
