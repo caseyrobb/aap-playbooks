@@ -1,6 +1,7 @@
 ---
 - name: Test k8s connection
   gather_facts: false
+  hosts: k0s
 
   tasks:
     - name: Get Kubernetes cluster information
