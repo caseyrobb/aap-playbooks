@@ -19,14 +19,18 @@
         validate_certs: no
       register: auth_response
 
-    - name:
+    - name: print var
+      debug:
+        msg: "{{ auth_response }}"
+
+    - name: Add new auth provider to admin group
       ansible.builtin.uri:
         url: "{{ ROX_CENTRAL_ENDPOINT }}/v1/groupsbatch"
         method: POST
         headers:
           Authorization: "Bearer {{ ROX_API_TOKEN }}"
           Content-Type: "application/json"
-        body: '{"requiredGroups":[{"props":{"authProviderId":"{{ auth_response.authProviderId }}"},"roleName":"Admin"}],"previousGroups":[]}'
+        body: '{"requiredGroups":[{"props":{"authProviderId":"{{ auth_response.json.authProviderId }}"},"roleName":"Admin"}],"previousGroups":[]}'
         body_format: json
         status_code: 200
         validate_certs: no
