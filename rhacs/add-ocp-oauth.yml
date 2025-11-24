@@ -1,0 +1,32 @@
+---
+- name: Playbook to add an OpenShift auth provider and give admin access
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - vault.yml
+
+  tasks:
+    - name: Add OpenShift auth proivder
+      ansible.builtin.uri:
+        url: "{{ ROX_CENTRAL_ENDPOINT }}/v1/authProviders"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ ROX_API_TOKEN }}"
+          Content-Type: "application/json"
+        body: '{"id":"","name":"openshift","type":"openshift","config":{},"uiEndpoint":"{{ ROX_CENTRAL_ENDPOINT }}","enabled":true,"traits":{"mutabilityMode":"ALLOW_MUTATE"}}'
+        body_format: json
+        status_code: 200
+        validate_certs: no
+      register: auth_response
+
+    - name:
+      ansible.builtin.uri:
+        url: "{{ ROX_CENTRAL_ENDPOINT }}/v1/groupsbatch"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ ROX_API_TOKEN }}"
+          Content-Type: "application/json"
+        body: '{"requiredGroups":[{"props":{"authProviderId":"{{ auth_response.authProviderId }}"},"roleName":"Admin"}],"previousGroups":[]}'
+        body_format: json
+        status_code: 200
+        validate_certs: no
