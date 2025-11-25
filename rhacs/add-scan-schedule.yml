@@ -8,10 +8,10 @@
     scan_profiles:
       - "ocp4-cis"
       - "ocp4-cis-node"
-      - "ocp4-moderate"
-      - "ocp4-moderate-node"
-      - "ocp4-pci-dss"
-      - "ocp4-pci-dss-node"
+      #- "ocp4-moderate"
+      #- "ocp4-moderate-node"
+      #- "ocp4-pci-dss"
+      #- "ocp4-pci-dss-node"
       - "ocp4-pci-dss-4-0"
       - "ocp4-pci-dss-node-4-0"
 
