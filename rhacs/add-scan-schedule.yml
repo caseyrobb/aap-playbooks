@@ -1,0 +1,51 @@
+---
+- name: Playbook to add a daily compliane scan schedule
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - vault.yml
+  vars:
+    scan_profiles:
+      - "ocp4-cis"
+      - "ocp4-cis-node"
+      - "ocp4-moderate"
+      - "ocp4-moderate-node"
+      - "ocp4-pci-dss"
+      - "ocp4-pci-dss-node"
+      - "ocp4-pci-dss-4-0"
+      - "ocp4-pci-dss-node-4-0"
+
+  tasks:
+    - name: Get list of healthy clusters
+      ansible.builtin.uri:
+        url: "{{ ROX_CENTRAL_ENDPOINT }}/v1/clusters"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ ROX_API_TOKEN }}"
+        return_content: yes
+        status_code: 200
+        validate_certs: no
+      register: cluster_list
+
+    - name: Get list of compliance profiles
+      ansible.builtin.uri:
+        url: "{{ ROX_CENTRAL_ENDPOINT }}/v2/compliance/scan/configurations"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ ROX_API_TOKEN }}"
+          Content-Type: "application/json"
+        body:
+          scanName: "daily-ocp"
+          scanConfig:
+            description: "Daily scan for CIS, NIST and PCI-DSS"
+            oneTimeScan: false
+            profiles: "{{ scan_profiles }}"
+            scanSchedule:
+              hour: 1
+              minute: 0
+              intervalType: "DAILY"
+            notifiers: []
+          clusters: "{{ cluster_list.json.clusters | map(attribute='id') | list }}"
+        body_format: json
+        status_code: 200
+        validate_certs: no
