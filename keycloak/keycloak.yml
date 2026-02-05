@@ -59,7 +59,6 @@
     - name: Create ArgoCD OIDC Client
       community.general.keycloak_client:
         auth_client_id: admin-cli
-        auth_client_secret: "{{ argocd_client_secret }}"
         auth_keycloak_url: "{{ keycloak_url }}"
         auth_realm: master
         auth_username: "{{ keycloak_admin_user }}"
@@ -67,15 +66,17 @@
         realm: "{{ realm_name }}"
         client_id: argocd
         name: ArgoCD
-        description: "OIDC Client for ArgoCD"
         enabled: true
+        description: "OIDC Client for ArgoCD"
         client_authenticator_type: client-secret
+        secret: "{{ argocd_client_secret }}"
         protocol: openid-connect
         public_client: false
         standard_flow_enabled: true
         direct_access_grants_enabled: true
         root_url: "{{ argocd_url }}"
         redirect_uris:
+          - "{{ argocd_url }}/auth/callback"
           - "{{ argocd_url }}/*"
         web_origins:
           - "+"
