@@ -77,11 +77,9 @@
         root_url: "{{ argocd_url }}"
         redirect_uris:
           - "{{ argocd_url }}/auth/callback"
-          - "{{ argocd_url }}/*"
         web_origins:
           - "+"
         state: present
-      register: argocd_client_result
 
     - name: Create GitHub Identity Provider
       community.general.keycloak_identity_provider:
@@ -124,7 +122,3 @@
           - name: argocd-admins
             state: present
         state: present
-
-    - name: Display ArgoCD Client Secret
-      debug:
-        msg: "The ArgoCD Client Secret is: {{ argocd_client_result.end_state.secret | default('Secret hidden or not changed') }}"
