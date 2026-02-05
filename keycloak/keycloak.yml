@@ -1,0 +1,129 @@
+---
+- name: Configure Keycloak Realm, User, Clients, and IdP for homelab
+  hosts: localhost
+  gather_facts: no
+
+  collections:
+    - community.general
+
+  vars_files:
+    - vault.yml
+
+  tasks:
+    - name: Create the homelab realm
+      community.general.keycloak_realm:
+        auth_client_id: admin-cli
+        auth_keycloak_url: "{{ keycloak_url }}"
+        auth_realm: master
+        auth_username: "{{ keycloak_admin_user }}"
+        auth_password: "{{ keycloak_admin_password }}"
+        id: "{{ realm_name }}"
+        realm: "{{ realm_name }}"
+        enabled: true
+        state: present
+
+    - name: Create user crobb
+      community.general.keycloak_user:
+        auth_client_id: admin-cli
+        auth_keycloak_url: "{{ keycloak_url }}"
+        auth_realm: master
+        auth_username: "{{ keycloak_admin_user }}"
+        auth_password: "{{ keycloak_admin_password }}"
+        realm: "{{ realm_name }}"
+        username: "{{ keycloak_username }}"
+        enabled: true
+        email: "{{ keycloak_email }}"
+        email_verified: true
+        firstName: "Casey"
+        lastName: "Robb"
+        credentials:
+          - type: password
+            value: "{{ keycloak_password }}"
+            temporary: false
+        state: present
+
+    - name: Assign realm-admin role to crobb
+      community.general.keycloak_user_rolemapping:
+        auth_client_id: admin-cli
+        auth_keycloak_url: "{{ keycloak_url }}"
+        auth_realm: master
+        auth_username: "{{ keycloak_admin_user }}"
+        auth_password: "{{ keycloak_admin_password }}"
+        realm: "{{ realm_name }}"
+        target_username: "{{ keycloak_username }}"
+        client_id: realm-management
+        roles:
+          - name: realm-admin
+        state: present
+
+    - name: Create ArgoCD OIDC Client
+      community.general.keycloak_client:
+        auth_client_id: admin-cli
+        auth_client_secret: "{{ argocd_client_secret }}"
+        auth_keycloak_url: "{{ keycloak_url }}"
+        auth_realm: master
+        auth_username: "{{ keycloak_admin_user }}"
+        auth_password: "{{ keycloak_admin_password }}"
+        realm: "{{ realm_name }}"
+        client_id: argocd
+        name: ArgoCD
+        description: "OIDC Client for ArgoCD"
+        enabled: true
+        client_authenticator_type: client-secret
+        protocol: openid-connect
+        public_client: false
+        standard_flow_enabled: true
+        direct_access_grants_enabled: true
+        root_url: "{{ argocd_url }}"
+        redirect_uris:
+          - "{{ argocd_url }}/*"
+        web_origins:
+          - "+"
+        state: present
+      register: argocd_client_result
+
+    - name: Create GitHub Identity Provider
+      community.general.keycloak_identity_provider:
+        auth_client_id: admin-cli
+        auth_keycloak_url: "{{ keycloak_url }}"
+        auth_realm: master
+        auth_username: "{{ keycloak_admin_user }}"
+        auth_password: "{{ keycloak_admin_password }}"
+        realm: "{{ realm_name }}"
+        alias: github
+        provider_id: github
+        enabled: true
+        config:
+          clientId: "{{ github_client_id }}"
+          clientSecret: "{{ github_client_secret }}"
+          useMetadataFromUrl: "false"
+        state: present
+
+    - name: Create group argocd-admins
+      community.general.keycloak_group:
+        auth_client_id: admin-cli
+        auth_keycloak_url: "{{ keycloak_url }}"
+        auth_realm: master
+        auth_username: "{{ keycloak_admin_user }}"
+        auth_password: "{{ keycloak_admin_password }}"
+        realm: "{{ realm_name }}"
+        name: argocd-admins
+        state: present
+
+    - name: Add crobb to argocd-admins
+      community.general.keycloak_user:
+        auth_client_id: admin-cli
+        auth_keycloak_url: "{{ keycloak_url }}"
+        auth_realm: master
+        auth_username: "{{ keycloak_admin_user }}"
+        auth_password: "{{ keycloak_admin_password }}"
+        realm: "{{ realm_name }}"
+        username: "{{ keycloak_username }}"
+        groups:
+          - name: argocd-admins
+            state: present
+        state: present
+
+    - name: Display ArgoCD Client Secret
+      debug:
+        msg: "The ArgoCD Client Secret is: {{ argocd_client_result.end_state.secret | default('Secret hidden or not changed') }}"
