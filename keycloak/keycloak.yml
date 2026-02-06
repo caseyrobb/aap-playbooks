@@ -56,6 +56,45 @@
           - name: realm-admin
         state: present
 
+    - name: Create the groups client scope
+      community.general.keycloak_clientscope:
+        auth_client_id: admin-cli
+        auth_keycloak_url: "{{ keycloak_url }}"
+        auth_realm: master
+        auth_username: "{{ keycloak_admin_user }}"
+        auth_password: "{{ keycloak_admin_password }}"
+        realm: "{{ realm_name }}"
+        name: groups
+        description: "OpenID Connect scope for group membership"
+        protocol: openid-connect
+        attributes:
+          include.in.token.scope: "true"
+          include.in.openid.provider.metadata: "true"
+          display.on.consent.screen: "true"
+        state: present
+
+    - name: Create OIDC client scope with Group Membership mapper
+      community.general.keycloak_clientscope:
+        auth_client_id: admin-cli
+        auth_keycloak_url: "{{ keycloak_url }}"
+        auth_realm: master
+        auth_username: "{{ keycloak_admin_user }}"
+        auth_password: "{{ keycloak_admin_password }}"
+        realm: "{{ realm_name }}"
+        state: present
+        name: groups
+        protocol: openid-connect
+        protocol_mappers:
+          - name: groups
+            protocol: openid-connect
+            protocolMapper: oidc-group-membership-mapper
+            config:
+              claim.name: groups
+              full.path: "false"
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+
     - name: Create ArgoCD OIDC Client
       community.general.keycloak_client:
         auth_client_id: admin-cli
@@ -80,6 +119,12 @@
         web_origins:
           - "+"
         state: present
+        default_client_scopes:
+          - email
+          - groups
+          - profile
+          - roles
+          - web-origins
 
     - name: Create GitHub Identity Provider
       community.general.keycloak_identity_provider:
