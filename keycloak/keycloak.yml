@@ -126,6 +126,37 @@
           - roles
           - web-origins
 
+    - name: Create Grafana OIDC Client
+      community.general.keycloak_client:
+        auth_client_id: admin-cli
+        auth_keycloak_url: "{{ keycloak_url }}"
+        auth_realm: master
+        auth_username: "{{ keycloak_admin_user }}"
+        auth_password: "{{ keycloak_admin_password }}"
+        realm: "{{ realm_name }}"
+        client_id: grafana
+        name: Grafana
+        enabled: true
+        description: "OIDC Client for Grafana"
+        client_authenticator_type: client-secret
+        secret: "{{ grafana_client_secret }}"
+        protocol: openid-connect
+        public_client: false
+        standard_flow_enabled: true
+        direct_access_grants_enabled: true
+        root_url: "{{ grafana_url }}"
+        redirect_uris:
+        web_origins:
+          - "{{ grafana_url }}/login/generic_oauth"
+          - "+"
+        state: present
+        default_client_scopes:
+          - email
+          - groups
+          - profile
+          - roles
+          - web-origins
+
     - name: Create GitHub Identity Provider
       community.general.keycloak_identity_provider:
         auth_client_id: admin-cli
