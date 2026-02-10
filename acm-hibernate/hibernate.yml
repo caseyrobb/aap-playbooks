@@ -9,13 +9,24 @@
     target_label: "environment=prod"
 
   tasks:
-    - name: "Find all ClusterDeployments with label {{ target_label }}"
+    - name: "Find all ManagedClusters with label {{ target_label }}"
+      kubernetes.core.k8s_info:
+        api_version: cluster.open-cluster-management.io/v1
+        kind: ManagedCluster
+        label_selectors:
+          - "{{ target_label }}"
+      register: managed_clusters
+
+    - name: "Find all ClusterDeployment namespaces for each cluster"
       kubernetes.core.k8s_info:
         api_version: hive.openshift.io/v1
         kind: ClusterDeployment
-        label_selectors:
-          - "{{ target_label }}"
+        field_selectors:
+          - "metadata.name={{ item.metadata.name }}"
+      loop: "{{ managed_clusters.resources }}"
       register: prod_clusters
+      loop_control:
+        label: "{{ item.metadata.name }}"
 
     - name: "Set powerState to {{ target_state }}"
       kubernetes.core.k8s:
@@ -26,6 +37,7 @@
         definition:
           spec:
             powerState: "{{ target_state }}"
-      loop: "{{ prod_clusters.resources }}"
+      loop: "{{ prod_clusters.results }}"
+      when: item.resources | length > 0
       loop_control:
-        label: "{{ item.metadata.name }}"
+        label: "{{ item.resources[0].metadata.name }}"
