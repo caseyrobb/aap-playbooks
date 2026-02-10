@@ -1,0 +1,13 @@
+---
+- name: Test k8s connection
+  gather_facts: false
+  hosts: localhost
+
+  tasks:
+    - name: Get Kubernetes cluster information
+      kubernetes.core.k8s_cluster_info:
+      register: cluster_info
+
+    - name: Display cluster information
+      ansible.builtin.debug:
+        var: cluster_info

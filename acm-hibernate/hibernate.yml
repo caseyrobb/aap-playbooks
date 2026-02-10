@@ -1,0 +1,31 @@
+---
+- name: Hibernate prod clusters
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    target_state: "Hibernating"
+    target_label: "environment=prod"
+
+  tasks:
+    - name: "Find all ClusterDeployments with label {{ target_label }}"
+      kubernetes.core.k8s_info:
+        api_version: hive.openshift.io/v1
+        kind: ClusterDeployment
+        label_selectors:
+          - "{{ target_label }}"
+      register: prod_clusters
+
+    - name: "Set powerState to {{ target_state }}"
+      kubernetes.core.k8s:
+        api_version: hive.openshift.io/v1
+        kind: ClusterDeployment
+        name: "{{ item.metadata.name }}"
+        namespace: "{{ item.metadata.namespace }}"
+        definition:
+          spec:
+            powerState: "{{ target_state }}"
+      loop: "{{ prod_clusters.resources }}"
+      loop_control:
+        label: "{{ item.metadata.name }}"
