@@ -6,7 +6,7 @@
 
   vars:
     target_state: "Hibernating"
-    target_label: "environment=prod"
+    target_label: "environment=dev"
 
   tasks:
     - name: "Find all ManagedClusters with label {{ target_label }}"
