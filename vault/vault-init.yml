@@ -7,59 +7,117 @@
     - vault.yml
 
   tasks:
-    - name: Enable KV v2 Secret Engine for Cluster Secrets
-      community.hashi_vault.vault_secret_engine:
-        path: "{{ kv_engine_path }}"
-        backend: kv-v2
-        state: present
+    - name: Enable KV v2 Secret Engine
+      ansible.builtin.uri:
+        url: "{{ vault_addr }}/v1/sys/mounts/{{ kv_engine_path }}"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        body_format: json
+        body:
+          type: kv
+          options:
+            version: "2"
+        status_code: [200, 204, 400]
+      register: kv_mount
+      failed_when:
+        - kv_mount.status == 400
+        - "'path is already in use' not in kv_mount.json.errors | default([]) | join('')"
 
     - name: Create Superuser Admin Policy
-      community.hashi_vault.vault_policy:
-        name: superuser-admin
-        rules: |
-          path "*" {
-            capabilities = ["create", "read", "update", "delete", "list", "sudo"]
-          }
+      ansible.builtin.uri:
+        url: "{{ vault_addr }}/v1/sys/policies/acl/superuser-admin"
+        method: PUT
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        body_format: json
+        body:
+          policy: |
+            path "*" {
+              capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+            }
+        status_code: [200, 204]
 
     - name: Create ESO Read-Only Policy
-      community.hashi_vault.vault_policy:
-        name: eso-readonly
-        rules: |
-          path "{{ kv_engine_path }}/data/*" {
-            capabilities = ["read"]
-          }
-          path "{{ kv_engine_path }}/metadata/*" {
-            capabilities = ["read", "list"]
-          }
+      ansible.builtin.uri:
+        url: "{{ vault_addr }}/v1/sys/policies/acl/eso-readonly"
+        method: PUT
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        body_format: json
+        body:
+          policy: |
+            path "{{ kv_engine_path }}/data/*" {
+              capabilities = ["read"]
+            }
+            path "{{ kv_engine_path }}/metadata/*" {
+              capabilities = ["read", "list"]
+            }
+        status_code: [200, 204]
 
-    - name: Enable Userpass Auth Method (For Web UI)
-      community.hashi_vault.vault_auth_method:
-        method_type: userpass
-        state: present
+    - name: Enable Userpass Auth Method
+      ansible.builtin.uri:
+        url: "{{ vault_addr }}/v1/sys/auth/userpass"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        body_format: json
+        body:
+          type: userpass
+        status_code: [200, 204, 400]
+      register: userpass_auth
+      failed_when:
+        - userpass_auth.status == 400
+        - "'path is already in use' not in userpass_auth.json.errors | default([]) | join('')"
 
-    - name: Enable Kubernetes Auth Method (For ESO)
-      community.hashi_vault.vault_auth_method:
-        method_type: kubernetes
-        state: present
+    - name: Enable Kubernetes Auth Method
+      ansible.builtin.uri:
+        url: "{{ vault_addr }}/v1/sys/auth/kubernetes"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        body_format: json
+        body:
+          type: kubernetes
+        status_code: [200, 204, 400]
+      register: k8s_auth
+      failed_when:
+        - k8s_auth.status == 400
+        - "'path is already in use' not in k8s_auth.json.errors | default([]) | join('')"
 
     - name: Create Web UI Superuser
-      community.hashi_vault.vault_write:
-        path: "auth/userpass/users/{{ admin_username }}"
-        data:
+      ansible.builtin.uri:
+        url: "{{ vault_addr }}/v1/auth/userpass/users/{{ admin_username }}"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        body_format: json
+        body:
           password: "{{ admin_password }}"
           policies: ["superuser-admin"]
+        status_code: [200, 204]
 
     - name: Configure Kubernetes Auth Method
-      community.hashi_vault.vault_write:
-        path: auth/kubernetes/config
-        data:
+      ansible.builtin.uri:
+        url: "{{ vault_addr }}/v1/auth/kubernetes/config"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        body_format: json
+        body:
           kubernetes_host: "{{ k8s_host_url }}"
+        status_code: [200, 204]
 
     - name: Create Kubernetes Auth Role for ESO
-      community.hashi_vault.vault_write:
-        path: auth/kubernetes/role/external-secrets-role
-        data:
-          bound_service_account_names: "{{ eso_service_account }}"
-          bound_service_account_namespaces: "{{ eso_namespace }}"
+      ansible.builtin.uri:
+        url: "{{ vault_addr }}/v1/auth/kubernetes/role/external-secrets-role"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        body_format: json
+        body:
+          bound_service_account_names: ["{{ eso_service_account }}"]
+          bound_service_account_namespaces: ["{{ eso_namespace }}"]
           policies: ["eso-readonly"]
           ttl: "1h"
+        status_code: [200, 204]
