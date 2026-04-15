@@ -1,0 +1,65 @@
+---
+- name: Initial Vault Configuration
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - vault.yml
+
+  tasks:
+    - name: Enable KV v2 Secret Engine for Cluster Secrets
+      community.hashi_vault.vault_secret_engine:
+        path: "{{ kv_engine_path }}"
+        backend: kv-v2
+        state: present
+
+    - name: Create Superuser Admin Policy
+      community.hashi_vault.vault_policy:
+        name: superuser-admin
+        rules: |
+          path "*" {
+            capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+          }
+
+    - name: Create ESO Read-Only Policy
+      community.hashi_vault.vault_policy:
+        name: eso-readonly
+        rules: |
+          path "{{ kv_engine_path }}/data/*" {
+            capabilities = ["read"]
+          }
+          path "{{ kv_engine_path }}/metadata/*" {
+            capabilities = ["read", "list"]
+          }
+
+    - name: Enable Userpass Auth Method (For Web UI)
+      community.hashi_vault.vault_auth_method:
+        method_type: userpass
+        state: present
+
+    - name: Enable Kubernetes Auth Method (For ESO)
+      community.hashi_vault.vault_auth_method:
+        method_type: kubernetes
+        state: present
+
+    - name: Create Web UI Superuser
+      community.hashi_vault.vault_write:
+        path: "auth/userpass/users/{{ admin_username }}"
+        data:
+          password: "{{ admin_password }}"
+          policies: ["superuser-admin"]
+
+    - name: Configure Kubernetes Auth Method
+      community.hashi_vault.vault_write:
+        path: auth/kubernetes/config
+        data:
+          kubernetes_host: "{{ k8s_host_url }}"
+
+    - name: Create Kubernetes Auth Role for ESO
+      community.hashi_vault.vault_write:
+        path: auth/kubernetes/role/external-secrets-role
+        data:
+          bound_service_account_names: "{{ eso_service_account }}"
+          bound_service_account_namespaces: "{{ eso_namespace }}"
+          policies: ["eso-readonly"]
+          ttl: "1h"
