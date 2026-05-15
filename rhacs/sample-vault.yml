@@ -1,0 +1,7 @@
+ROX_API_TOKEN: xxx
+ROX_CENTRAL_ENDPOINT: https://central-stackrox.apps.mycluster.example.com
+acs_integration_name: "Quay Integration"
+quay_oauth_token: XXX
+quay_endpoint: https://quay.example.com
+quay_username: quayadmin
+quay_password: mysecretpass
